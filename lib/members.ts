@@ -61,10 +61,16 @@ export async function getAllMembers(): Promise<Member[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Member));
 }
 
+function clean(data: MemberInput) {
+  return Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+}
+
 export async function addMember(data: MemberInput): Promise<string> {
   const db = await getDb();
   const ref = await addDoc(collection(db, COL), {
-    ...data,
+    ...clean(data),
     createdAt: Timestamp.now(),
   });
   return ref.id;
@@ -72,7 +78,7 @@ export async function addMember(data: MemberInput): Promise<string> {
 
 export async function updateMember(id: string, data: MemberInput): Promise<void> {
   const db = await getDb();
-  await updateDoc(doc(db, COL, id), { ...data });
+  await updateDoc(doc(db, COL, id), clean(data));
 }
 
 export async function deleteMember(id: string, avatarUrl?: string): Promise<void> {

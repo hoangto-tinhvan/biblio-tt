@@ -35,8 +35,14 @@ export default function MemberForm({ initial, onSave, onCancel }: Props) {
       setError("Năm sinh không hợp lệ."); return;
     }
     setSaving(true);
-    await onSave({ name: name.trim(), yearOfBirth: yob, avatarUrl: initial?.avatarUrl }, file);
-    setSaving(false);
+    try {
+      await onSave({ name: name.trim(), yearOfBirth: yob, avatarUrl: initial?.avatarUrl }, file);
+    } catch (e) {
+      setError("Lưu thất bại, thử lại.");
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
