@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Member, MemberInput,
-  getAllMembers, addMember, updateMember, deleteMember, uploadAvatar,
+  getAllMembers, addMember, updateMember, deleteMember, compressToDataUrl,
 } from "@/lib/members";
 import Avatar from "@/components/Avatar";
 import MemberForm from "@/components/MemberForm";
@@ -27,15 +27,12 @@ export default function ThanhVienPage() {
   useEffect(() => { load(); }, []);
 
   const handleSave = async (data: MemberInput, file?: File) => {
+    let avatarUrl = data.avatarUrl;
+    if (file) avatarUrl = await compressToDataUrl(file);
+
     if (view === "add") {
-      const id = await addMember(data);
-      if (file) {
-        const url = await uploadAvatar(id, file);
-        await updateMember(id, { ...data, avatarUrl: url });
-      }
+      await addMember({ ...data, avatarUrl });
     } else if (editing) {
-      let avatarUrl = data.avatarUrl;
-      if (file) avatarUrl = await uploadAvatar(editing.id, file);
       await updateMember(editing.id, { ...data, avatarUrl });
     }
     await load();
@@ -45,7 +42,7 @@ export default function ThanhVienPage() {
 
   const handleDelete = async (m: Member) => {
     if (!window.confirm(`Xoá thành viên "${m.name}"?`)) return;
-    await deleteMember(m.id, m.avatarUrl);
+    await deleteMember(m.id);
     await load();
   };
 

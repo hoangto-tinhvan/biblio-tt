@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Member, MemberInput, uploadAvatar } from "@/lib/members";
+import { Member, MemberInput } from "@/lib/members";
 import Avatar from "./Avatar";
 
 interface Props {
