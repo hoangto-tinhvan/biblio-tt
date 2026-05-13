@@ -7,6 +7,7 @@ import {
 } from "@/lib/members";
 import Avatar from "@/components/Avatar";
 import MemberForm from "@/components/MemberForm";
+import PageHeader from "@/components/PageHeader";
 
 type View = "list" | "add" | "edit";
 
@@ -70,15 +71,7 @@ export default function ThanhVienPage() {
 
   return (
     <div className="scroll-ios overflow-y-auto h-full">
-      <div
-        className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4"
-        style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
-      >
-        <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest text-center">
-          CLB Bóng bàn BIBLIO
-        </p>
-        <h1 className="text-xl font-bold text-center text-gray-900 mt-0.5">Thành viên</h1>
-      </div>
+      <PageHeader title="Thành viên" />
 
       <div className="p-4 flex flex-col gap-3">
         {loading ? (

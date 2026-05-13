@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAllMatches, Match } from "@/lib/firestore";
 import { computePlayerStats, computePairStats, PlayerStats, PairStats } from "@/lib/stats";
+import PageHeader from "@/components/PageHeader";
 
 type Tab = "nguoi" | "cap";
 
@@ -25,15 +26,7 @@ export default function ThongKePage() {
 
   return (
     <div className="scroll-ios overflow-y-auto h-full">
-      <div
-        className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4"
-        style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
-      >
-        <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest text-center">
-          CLB Bóng bàn BIBLIO
-        </p>
-        <h1 className="text-xl font-bold text-center text-gray-900 mt-0.5">Thống kê</h1>
-      </div>
+      <PageHeader title="Thống kê" />
 
       {loading ? (
         <div className="text-center text-gray-400 py-16">Đang tải...</div>
