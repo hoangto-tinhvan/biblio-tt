@@ -18,8 +18,20 @@ export default function PasscodeGate({ children }: { children: React.ReactNode }
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    setUnlocked(sessionStorage.getItem(SESSION_KEY) === "1");
+    const isUnlocked = sessionStorage.getItem(SESSION_KEY) === "1";
+    setUnlocked(isUnlocked);
+    setThemeColor(isUnlocked);
   }, []);
+
+  const setThemeColor = (light: boolean) => {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.content = light ? "#ffffff" : "#111827";
+  };
 
   const handleKey = (key: string) => {
     if (key === "") return;
@@ -33,6 +45,7 @@ export default function PasscodeGate({ children }: { children: React.ReactNode }
     if (next.length === 4) {
       if (next === PASSCODE) {
         sessionStorage.setItem(SESSION_KEY, "1");
+        setThemeColor(true);
         setUnlocked(true);
       } else {
         setShake(true);
