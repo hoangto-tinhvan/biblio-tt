@@ -60,8 +60,9 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
     setSaving(false);
   };
 
-  const team1Label = type === "don" ? (p1a || "Đội 1") : [p1a, p1b].filter(Boolean).join(" & ") || "Đội 1";
-  const team2Label = type === "don" ? (p2a || "Đội 2") : [p2a, p2b].filter(Boolean).join(" & ") || "Đội 2";
+  const ln = (name: string) => name.trim().split(" ").pop() ?? name;
+  const team1Label = type === "don" ? (p1a ? ln(p1a) : "Đội 1") : [p1a, p1b].filter(Boolean).map(ln).join(" & ") || "Đội 1";
+  const team2Label = type === "don" ? (p2a ? ln(p2a) : "Đội 2") : [p2a, p2b].filter(Boolean).map(ln).join(" & ") || "Đội 2";
 
   return (
     <div className="flex flex-col gap-4">

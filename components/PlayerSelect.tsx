@@ -6,6 +6,8 @@ import Avatar from "./Avatar";
 
 const GUEST = "__guest__";
 
+const lastName = (name: string) => name.trim().split(" ").pop() ?? name;
+
 interface Props {
   value: string;
   onChange: (v: string) => void;
@@ -46,7 +48,7 @@ export default function PlayerSelect({ value, onChange, members, label, exclude 
             {members
               .filter((m) => !exclude.includes(m.name))
               .map((m) => (
-                <option key={m.id} value={m.name}>{m.name}</option>
+                <option key={m.id} value={m.name}>{lastName(m.name)}</option>
               ))}
             <option value={GUEST}>Khác (giao hữu)...</option>
           </select>

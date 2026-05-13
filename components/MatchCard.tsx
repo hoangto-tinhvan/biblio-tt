@@ -9,9 +9,11 @@ interface Props {
   index?: number;
 }
 
+const lastName = (name: string) => name.trim().split(" ").pop() ?? name;
+
 export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
-  const team1Label = match.team1.join(" & ");
-  const team2Label = match.team2.join(" & ");
+  const team1Label = match.team1.map(lastName).join(" & ");
+  const team2Label = match.team2.map(lastName).join(" & ");
   const team1Wins = match.sets1 > match.sets2;
 
   return (
