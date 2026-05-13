@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import PasscodeGate from "@/components/PasscodeGate";
 
 export const metadata: Metadata = {
   title: "CLB Bóng bàn BIBLIO",
@@ -30,10 +31,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
-        <div className="max-w-md mx-auto min-h-screen flex flex-col">
-          <main className="flex-1 pb-24">{children}</main>
-          <BottomNav />
-        </div>
+        <PasscodeGate>
+          <div className="max-w-md mx-auto min-h-screen flex flex-col">
+            <main className="flex-1 pb-24">{children}</main>
+            <BottomNav />
+          </div>
+        </PasscodeGate>
       </body>
     </html>
   );
