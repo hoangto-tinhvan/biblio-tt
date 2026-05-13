@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Match, MatchInput, addMatch, updateMatch, deleteMatch, getAllMatches } from "@/lib/firestore";
-import { getKnownPlayers } from "@/lib/stats";
+import { Member, getAllMembers } from "@/lib/members";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 
@@ -16,14 +16,16 @@ function formatDateVN(dateStr: string) {
 export default function HomePage() {
   const today = new Date().toISOString().split("T")[0];
   const [matches, setMatches] = useState<Match[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [editing, setEditing] = useState<Match | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const all = await getAllMatches();
+    const [all, mems] = await Promise.all([getAllMatches(), getAllMembers()]);
     setMatches(all);
+    setMembers(mems);
     setLoading(false);
   };
 
@@ -32,8 +34,6 @@ export default function HomePage() {
   const todayMatches = matches
     .filter((m) => m.date === today)
     .sort((a, b) => a.createdAt.seconds - b.createdAt.seconds);
-
-  const suggestions = getKnownPlayers(matches);
 
   const handleAdd = async (data: MatchInput) => {
     await addMatch(data);
@@ -68,7 +68,7 @@ export default function HomePage() {
         <div className="p-4">
           <MatchForm
             initial={editing ?? undefined}
-            suggestions={suggestions}
+            members={members}
             onSave={view === "add" ? handleAdd : handleEdit}
             onCancel={() => { setView("list"); setEditing(null); }}
           />
@@ -115,7 +115,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* FAB */}
       <button
         onClick={() => { setEditing(null); setView("add"); }}
         className="fixed right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg text-3xl font-light flex items-center justify-center active:scale-95 transition-transform z-40"

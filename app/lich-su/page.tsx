@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Match, MatchInput, getAllMatches, updateMatch, deleteMatch } from "@/lib/firestore";
-import { getKnownPlayers } from "@/lib/stats";
+import { Member, getAllMembers } from "@/lib/members";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 
@@ -16,19 +16,19 @@ function formatDateVN(dateStr: string) {
 
 export default function LichSuPage() {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Match | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const all = await getAllMatches();
+    const [all, mems] = await Promise.all([getAllMatches(), getAllMembers()]);
     setMatches(all);
+    setMembers(mems);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
-
-  const suggestions = getKnownPlayers(matches);
 
   // Group by date, sorted desc
   const byDate = matches.reduce<Record<string, Match[]>>((acc, m) => {
@@ -63,7 +63,7 @@ export default function LichSuPage() {
         <div className="p-4">
           <MatchForm
             initial={editing}
-            suggestions={suggestions}
+            members={members}
             onSave={handleEdit}
             onCancel={() => setEditing(null)}
           />
