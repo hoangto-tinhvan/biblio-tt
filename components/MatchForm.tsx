@@ -25,8 +25,14 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
   const [p2a, setP2a] = useState(initial?.team2[0] ?? "");
   const [p2b, setP2b] = useState(initial?.team2[1] ?? "");
 
-  const [sets1, setSets1] = useState(initial?.sets1 ?? 2);
-  const [sets2, setSets2] = useState(initial?.sets2 ?? 0);
+  const defaultScore = (t: MatchType) => t === "don" ? 2 : 3;
+  const [sets1, setSets1] = useState(initial?.sets1 ?? defaultScore("don"));
+  const [sets2, setSets2] = useState(initial?.sets2 ?? defaultScore("don"));
+
+  const handleTypeChange = (t: MatchType) => {
+    setType(t);
+    if (!initial) { setSets1(defaultScore(t)); setSets2(defaultScore(t)); }
+  };
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -84,7 +90,7 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
         <div className="flex gap-2">
           {(["don", "doi"] as MatchType[]).map((t) => (
             <button
-              key={t} type="button" onClick={() => setType(t)}
+              key={t} type="button" onClick={() => handleTypeChange(t)}
               className={`flex-1 py-3 rounded-xl font-semibold text-base transition-all ${
                 type === t ? "bg-blue-600 text-white shadow-sm" : "bg-white border border-gray-200 text-gray-600"
               }`}

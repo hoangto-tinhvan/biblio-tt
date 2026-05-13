@@ -6,6 +6,7 @@ import { Member, getAllMembers } from "@/lib/members";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 import PageHeader from "@/components/PageHeader";
+import DoubleSummary from "@/components/DoubleSummary";
 
 type View = "list" | "add" | "edit";
 
@@ -92,17 +93,20 @@ export default function HomePage() {
             <p className="text-sm mt-1">Nhấn + để thêm kết quả</p>
           </div>
         ) : (
-          todayMatches.map((m, i) => (
-            <MatchCard
-              key={m.id}
-              match={m}
-              index={i + 1}
-              onEdit={() => { setEditing(m); setView("edit"); }}
-              onDelete={() => {
-                if (window.confirm("Xoá trận này?")) handleDelete(m.id);
-              }}
-            />
-          ))
+          <>
+            {todayMatches.map((m, i) => (
+              <MatchCard
+                key={m.id}
+                match={m}
+                index={i + 1}
+                onEdit={() => { setEditing(m); setView("edit"); }}
+                onDelete={() => {
+                  if (window.confirm("Xoá trận này?")) handleDelete(m.id);
+                }}
+              />
+            ))}
+            <DoubleSummary matches={todayMatches} />
+          </>
         )}
       </div>
 

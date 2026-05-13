@@ -6,6 +6,7 @@ import { Member, getAllMembers } from "@/lib/members";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 import PageHeader from "@/components/PageHeader";
+import DoubleSummary from "@/components/DoubleSummary";
 
 function formatDateVN(dateStr: string) {
   const [y, m, d] = dateStr.split("-");
@@ -109,6 +110,7 @@ export default function LichSuPage() {
                       }}
                     />
                   ))}
+                  <DoubleSummary matches={dayMatches} />
                 </div>
               </div>
             );
