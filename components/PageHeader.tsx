@@ -11,7 +11,7 @@ export default function PageHeader({ title }: Props) {
       <div className="flex items-center gap-2 justify-center">
         {/* CLB logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.avif" alt="CLB Bóng bàn BIBLIO" className="w-10 h-10 object-contain" />
+        <img src="/logo.avif" alt="CLB Bóng bàn BIBLIO" className="w-20 h-20 object-contain" />
         <div>
           <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-widest leading-none">
             CLB Bóng bàn BIBLIO
