@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import PasscodeGate from "@/components/PasscodeGate";
+import { DataProvider } from "@/contexts/DataContext";
 
 export const metadata: Metadata = {
   title: "CLB Bóng bàn BIBLIO",
@@ -32,10 +33,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
         <PasscodeGate>
-          <div className="max-w-md mx-auto min-h-screen flex flex-col">
-            <main className="flex-1 pb-24">{children}</main>
+          <DataProvider>
+            {/* max-w-md centers on large screens, pb-20 clears bottom nav */}
+            <div className="max-w-md mx-auto" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
+              {children}
+            </div>
             <BottomNav />
-          </div>
+          </DataProvider>
         </PasscodeGate>
       </body>
     </html>
