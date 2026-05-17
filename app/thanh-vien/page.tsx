@@ -79,7 +79,7 @@ export default function ThanhVienPage() {
               <img
                 src={selected.avatarUrl}
                 alt={selected.name}
-                className="w-36 h-36 rounded-full object-cover shadow-lg border-4 border-white ring-2 ring-gray-100"
+                className="w-2/3 aspect-square rounded-full object-cover shadow-xl border-4 border-white ring-2 ring-gray-100"
               />
             ) : (
               <AvatarLarge name={selected.name} />
@@ -192,7 +192,8 @@ function AvatarLarge({ name }: { name: string }) {
   const color = COLORS[h % COLORS.length];
   const initials = name.split(" ").slice(-2).map((w) => w[0]).join("").toUpperCase();
   return (
-    <div className={`w-36 h-36 rounded-full ${color} flex items-center justify-center text-white text-5xl font-bold shadow-lg`}>
+    <div className={`w-2/3 aspect-square rounded-full ${color} flex items-center justify-center text-white font-bold shadow-xl`}
+      style={{ fontSize: "clamp(3rem, 15vw, 6rem)" }}>
       {initials}
     </div>
   );
