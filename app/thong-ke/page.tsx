@@ -148,28 +148,24 @@ function H2HRow({ stat }: { stat: H2HStats }) {
         <span className="font-semibold text-gray-900 text-base">{ln(player2)}</span>
       </div>
 
-      {hasEnough && (
-        <>
-          {/* Win counts */}
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-blue-600 font-bold">{wins1}W</span>
-            <span className="text-gray-300 text-xs">vs</span>
-            <span className="text-blue-600 font-bold">{wins2}W</span>
-          </div>
+      {/* Win counts */}
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-blue-600 font-bold">{wins1}W</span>
+        <span className="text-gray-300 text-xs">vs</span>
+        <span className="text-blue-600 font-bold">{wins2}W</span>
+      </div>
 
-          {/* Progress bar */}
-          <div className="flex h-2 rounded-full overflow-hidden bg-gray-100">
-            <div className="bg-blue-500 transition-all" style={{ width: `${winRate1}%` }} />
-            <div className="bg-purple-400 transition-all" style={{ width: `${winRate2}%` }} />
-          </div>
+      {/* Progress bar */}
+      <div className="flex h-2 rounded-full overflow-hidden bg-gray-100">
+        <div className="bg-blue-500 transition-all" style={{ width: `${winRate1}%` }} />
+        <div className="bg-purple-400 transition-all" style={{ width: `${winRate2}%` }} />
+      </div>
 
-          {/* Win rates */}
-          <div className="flex justify-between text-xs">
-            <span className="text-blue-600 font-semibold">{winRate1}%</span>
-            <span className="text-purple-500 font-semibold">{winRate2}%</span>
-          </div>
-        </>
-      )}
+      {/* Win rates */}
+      <div className="flex justify-between text-xs">
+        <span className="text-blue-600 font-semibold">{winRate1}%</span>
+        <span className="text-purple-500 font-semibold">{winRate2}%</span>
+      </div>
 
       {/* Handicap suggestion */}
       <div className={`flex items-center justify-center gap-1.5 rounded-xl py-1.5 px-3 ${handicapColor}`}>
