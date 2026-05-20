@@ -15,6 +15,7 @@ export default function MemberForm({ initial, onSave, onCancel }: Props) {
   const [yearOfBirth, setYearOfBirth] = useState(
     initial?.yearOfBirth ? String(initial.yearOfBirth) : ""
   );
+  const [phone, setPhone] = useState(initial?.phone ?? "");
   const [preview, setPreview] = useState<string | undefined>(initial?.avatarUrl);
   const [file, setFile] = useState<File | undefined>();
   const [saving, setSaving] = useState(false);
@@ -36,7 +37,7 @@ export default function MemberForm({ initial, onSave, onCancel }: Props) {
     }
     setSaving(true);
     try {
-      await onSave({ name: name.trim(), yearOfBirth: yob, avatarUrl: initial?.avatarUrl }, file);
+      await onSave({ name: name.trim(), yearOfBirth: yob, phone: phone.trim() || undefined, avatarUrl: initial?.avatarUrl }, file);
     } catch (e) {
       setError("Lưu thất bại, thử lại.");
       console.error(e);
@@ -97,6 +98,18 @@ export default function MemberForm({ initial, onSave, onCancel }: Props) {
           placeholder="1990"
           min={1940}
           max={2015}
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Số điện thoại (tuỳ chọn)</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="0912 345 678"
           className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

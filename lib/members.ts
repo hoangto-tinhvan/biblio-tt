@@ -15,6 +15,7 @@ export interface Member {
   id: string;
   name: string;
   yearOfBirth?: number;
+  phone?: string;
   avatarUrl?: string;
   createdAt: Timestamp;
 }
@@ -22,6 +23,7 @@ export interface Member {
 export interface MemberInput {
   name: string;
   yearOfBirth?: number;
+  phone?: string;
   avatarUrl?: string;
 }
 

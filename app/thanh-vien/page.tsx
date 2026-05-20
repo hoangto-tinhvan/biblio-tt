@@ -91,6 +91,17 @@ export default function ThanhVienPage() {
                   Sinh {selected.yearOfBirth} · {currentYear - selected.yearOfBirth} tuổi
                 </p>
               )}
+              {selected.phone && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <span className="text-gray-600 text-sm font-medium">{selected.phone}</span>
+                  <a
+                    href={`tel:${selected.phone.replace(/\s/g, "")}`}
+                    className="flex items-center gap-1 bg-green-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full active:scale-95 transition-transform shadow-sm"
+                  >
+                    📞 Gọi
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
