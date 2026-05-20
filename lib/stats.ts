@@ -44,7 +44,7 @@ export function computePlayerStats(matches: Match[]): PlayerStats[] {
       ...s,
       winRate: s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0,
     }))
-    .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate);
+    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins);
 }
 
 export function computePairStats(matches: Match[]): PairStats[] {
@@ -76,7 +76,7 @@ export function computePairStats(matches: Match[]): PairStats[] {
       ...s,
       winRate: s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0,
     }))
-    .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate);
+    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins);
 }
 
 export interface H2HStats {
@@ -154,7 +154,11 @@ export function computeH2HStats(matches: Match[]): H2HStats[] {
       return { player1: p1, player2: p2, totalMatches, recentMatches, wins1, wins2, winRate1: wr1, winRate2: wr2, handicapText, stronger };
     })
     .filter((s) => s.totalMatches > 0)
-    .sort((a, b) => b.totalMatches - a.totalMatches);
+    .sort((a, b) => {
+      const la = ln(a.player1).localeCompare(ln(b.player1), "vi");
+      if (la !== 0) return la;
+      return ln(a.player2).localeCompare(ln(b.player2), "vi");
+    });
 }
 
 function ln(name: string) {
