@@ -13,14 +13,17 @@ const KEYS = [
 ];
 
 export default function PasscodeGate({ children }: { children: React.ReactNode }) {
-  const [unlocked, setUnlocked] = useState<boolean | null>(null);
+  // Read sessionStorage synchronously in the initializer — no null state, no blank frame
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(SESSION_KEY) === "1";
+  });
   const [input, setInput] = useState("");
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    const isUnlocked = sessionStorage.getItem(SESSION_KEY) === "1";
-    setUnlocked(isUnlocked);
-    setThemeColor(isUnlocked);
+    setThemeColor(unlocked);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setThemeColor = (light: boolean) => {
@@ -54,7 +57,6 @@ export default function PasscodeGate({ children }: { children: React.ReactNode }
     }
   };
 
-  if (unlocked === null) return null; // avoid flash
   if (unlocked) return <>{children}</>;
 
   return (

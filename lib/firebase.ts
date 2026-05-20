@@ -20,3 +20,9 @@ export async function getDb(): Promise<Firestore> {
   _db = getFirestore(a);
   return _db;
 }
+
+// Kick off Firebase init eagerly on module load (client only).
+// By the time the first Firestore query runs, init is already done.
+if (typeof window !== "undefined") {
+  initPromise = initFirebase();
+}

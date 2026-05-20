@@ -32,15 +32,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
-        <PasscodeGate>
-          <DataProvider>
-            {/* max-w-md centers on large screens, pb-20 clears bottom nav */}
+        {/* DataProvider is OUTSIDE PasscodeGate so data fetching starts immediately,
+            even while the user is typing the PIN. */}
+        <DataProvider>
+          <PasscodeGate>
             <div className="max-w-md mx-auto" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
               {children}
             </div>
             <BottomNav />
-          </DataProvider>
-        </PasscodeGate>
+          </PasscodeGate>
+        </DataProvider>
       </body>
     </html>
   );
