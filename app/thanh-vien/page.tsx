@@ -108,24 +108,25 @@ export default function ThanhVienPage() {
           {/* Stats card */}
           {stats ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Thống kê thi đấu</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Thống kê trận đơn</p>
               <div className="grid grid-cols-3 gap-3 text-center">
-                <StatCell label="Tổng trận" value={stats.matches} />
+                <StatCell label="Số trận" value={stats.matches} />
                 <StatCell label="Thắng" value={stats.wins} color="text-green-600" />
                 <StatCell label="Thua" value={stats.losses} color="text-red-400" />
               </div>
               <div className="mt-3 pt-3 border-t border-gray-50 text-center">
-                <p className="text-3xl font-bold text-blue-600">{stats.winRate}%</p>
-                <p className="text-xs text-gray-400 mt-0.5">Tỷ lệ thắng</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.score.toFixed(1)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">điểm (thắng 5đ · thua 1đ)</p>
               </div>
-              {/* win rate bar */}
+              {/* score bar: map 1.0–5.0 → 0–100% */}
               <div className="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${stats.winRate}%` }} />
+                <div className="h-full bg-blue-500 rounded-full transition-all"
+                  style={{ width: `${((stats.score - 1) / 4) * 100}%` }} />
               </div>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center text-gray-400 text-sm">
-              Chưa có trận đấu nào
+              Chưa có trận đơn nào
             </div>
           )}
 

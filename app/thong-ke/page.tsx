@@ -100,11 +100,11 @@ function PlayerRow({ stat, rank }: { stat: PlayerStats; rank: number }) {
       <span className="text-xl w-7 text-center">{MEDALS[rank] ?? `${rank + 1}`}</span>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-gray-900 truncate">{stat.name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{stat.matches} trận · {stat.wins}W {stat.losses}L</p>
+        <p className="text-xs text-gray-400 mt-0.5">{stat.matches} trận đơn · {stat.wins}W {stat.losses}L</p>
       </div>
       <div className="text-right">
-        <p className="text-lg font-bold text-blue-600">{stat.winRate}%</p>
-        <p className="text-xs text-gray-400">thắng</p>
+        <p className="text-lg font-bold text-blue-600">{stat.score.toFixed(1)}</p>
+        <p className="text-xs text-gray-400">điểm</p>
       </div>
     </div>
   );

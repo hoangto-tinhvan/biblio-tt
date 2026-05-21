@@ -2,10 +2,39 @@ import { Match, getWinner, getLoser } from "./firestore";
 
 export interface PlayerStats {
   name: string;
-  matches: number;
+  matches: number; // singles only
   wins: number;
   losses: number;
-  winRate: number;
+  score: number;   // (wins*5 + losses*1) / matches, range 1.0–5.0
+}
+
+// Win = 5 pts, Loss = 1 pt. Score = total pts / singles played.
+// 100% win → 5.0, 0% win → 1.0
+export function computePlayerStats(matches: Match[]): PlayerStats[] {
+  const singles = matches.filter((m) => m.type === "don");
+  const map = new Map<string, { wins: number; losses: number }>();
+
+  const ensure = (name: string) => {
+    if (!map.has(name)) map.set(name, { wins: 0, losses: 0 });
+    return map.get(name)!;
+  };
+
+  for (const m of singles) {
+    const winners = getWinner(m);
+    const losers = getLoser(m);
+    for (const p of winners) ensure(p).wins++;
+    for (const p of losers) ensure(p).losses++;
+  }
+
+  return Array.from(map.entries())
+    .map(([name, s]) => {
+      const total = s.wins + s.losses;
+      const score = total > 0
+        ? Math.round(((s.wins * 5 + s.losses * 1) / total) * 10) / 10
+        : 0;
+      return { name, matches: total, wins: s.wins, losses: s.losses, score };
+    })
+    .sort((a, b) => b.score - a.score || b.wins - a.wins);
 }
 
 export interface PairStats {
@@ -13,38 +42,6 @@ export interface PairStats {
   matches: number;
   wins: number;
   winRate: number;
-}
-
-export function computePlayerStats(matches: Match[]): PlayerStats[] {
-  const map = new Map<string, { matches: number; wins: number; losses: number }>();
-
-  const ensure = (name: string) => {
-    if (!map.has(name)) map.set(name, { matches: 0, wins: 0, losses: 0 });
-    return map.get(name)!;
-  };
-
-  for (const m of matches) {
-    const winners = getWinner(m);
-    const losers = getLoser(m);
-    for (const p of winners) {
-      const s = ensure(p);
-      s.matches++;
-      s.wins++;
-    }
-    for (const p of losers) {
-      const s = ensure(p);
-      s.matches++;
-      s.losses++;
-    }
-  }
-
-  return Array.from(map.entries())
-    .map(([name, s]) => ({
-      name,
-      ...s,
-      winRate: s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0,
-    }))
-    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins);
 }
 
 export function computePairStats(matches: Match[]): PairStats[] {
@@ -145,7 +142,7 @@ export function computeH2HStats(matches: Match[]): H2HStats[] {
         } else if (maxWins === 4) {
           handicapText = `${stronger ? ln(stronger) + " " : ""}nên chấp 2 bóng`;
         } else {
-          // 3-2 or 3-2: maxWins === 3
+          // 3-2: maxWins === 3
           handicapText = "Chơi ngang cơ hoặc chấp 1 bóng";
           stronger = null;
         }
