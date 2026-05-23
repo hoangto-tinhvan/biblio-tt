@@ -22,6 +22,7 @@ export interface Match {
   sets1: number;
   sets2: number;
   createdAt: Timestamp;
+  reactions?: Record<string, string>; // { [deviceId]: ReactionType }
 }
 
 export interface MatchInput {
