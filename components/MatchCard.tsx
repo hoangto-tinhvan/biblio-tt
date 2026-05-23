@@ -24,6 +24,7 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
   const [saving, setSaving] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moved = useRef(false);
+  const lastTap = useRef<number>(0);
 
   const deviceId = typeof window !== "undefined" ? getDeviceId() : "";
   const myReaction = (match.reactions?.[deviceId] ?? null) as ReactionType | null;
@@ -64,6 +65,17 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
     }
   };
 
+  // Double-tap → heart
+  const handleTap = () => {
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      lastTap.current = 0;
+      handleReact("heart");
+    } else {
+      lastTap.current = now;
+    }
+  };
+
   return (
     <div className="relative">
       {/* Reaction picker overlay */}
@@ -95,10 +107,10 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
       <div
         className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden select-none transition-opacity ${saving ? "opacity-60" : ""}`}
         onTouchStart={startPress}
-        onTouchEnd={cancelPress}
+        onTouchEnd={(e) => { cancelPress(); handleTap(); }}
         onTouchMove={onMove}
         onMouseDown={startPress}
-        onMouseUp={cancelPress}
+        onMouseUp={(e) => { cancelPress(); handleTap(); }}
         onMouseLeave={cancelPress}
         onContextMenu={(e) => { e.preventDefault(); setShowPicker(true); }}
       >
