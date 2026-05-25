@@ -87,15 +87,15 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
             onPointerDown={() => setShowPicker(false)}
           />
           {/* Picker */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-16 z-50 flex gap-1 bg-white rounded-2xl shadow-xl border border-gray-100 px-3 py-2">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-20 z-50 flex gap-0.5 bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2">
             {REACTIONS.map(({ type, emoji, label }) => (
               <button
                 key={type}
                 onClick={() => handleReact(type)}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl active:scale-110 transition-transform
+                className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-xl active:scale-110 transition-transform
                   ${myReaction === type ? "bg-blue-50 ring-2 ring-blue-400" : "hover:bg-gray-50"}`}
               >
-                <span className="text-2xl leading-none">{emoji}</span>
+                <span className="text-[38px] leading-none">{emoji}</span>
                 <span className="text-[9px] text-gray-400 font-medium">{label}</span>
               </button>
             ))}
@@ -192,7 +192,7 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
                     ? "bg-blue-50 border-blue-300 text-blue-700"
                     : "bg-gray-50 border-gray-200 text-gray-600"}`}
               >
-                <span>{emoji}</span>
+                <span className="text-[22px] leading-none">{emoji}</span>
                 <span>{counts[type]}</span>
               </button>
             ))}

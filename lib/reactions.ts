@@ -1,13 +1,15 @@
 import { updateDoc, doc, deleteField } from "firebase/firestore";
 import { getDb } from "./firebase";
 
-export type ReactionType = "heart" | "laugh" | "angry" | "sad";
+export type ReactionType = "heart" | "like" | "laugh" | "wow" | "angry" | "sad";
 
 export const REACTIONS: { type: ReactionType; emoji: string; label: string }[] = [
-  { type: "heart",  emoji: "❤️", label: "Tim" },
-  { type: "laugh",  emoji: "😂", label: "Cười sặc" },
-  { type: "angry",  emoji: "😡", label: "Tức giận" },
-  { type: "sad",    emoji: "😢", label: "Buồn" },
+  { type: "heart",  emoji: "❤️",  label: "Tim" },
+  { type: "like",   emoji: "👍",  label: "Thích" },
+  { type: "laugh",  emoji: "😂",  label: "Cười sặc" },
+  { type: "wow",    emoji: "😮",  label: "Ngạc nhiên" },
+  { type: "angry",  emoji: "😡",  label: "Tức giận" },
+  { type: "sad",    emoji: "😢",  label: "Buồn" },
 ];
 
 /** Persistent anonymous device ID stored in localStorage */
