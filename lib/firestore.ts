@@ -21,6 +21,9 @@ export interface Match {
   team2: string[];
   sets1: number;
   sets2: number;
+  handicapGiver?: 1 | 2;   // which team gives the handicap
+  handicapBalls?: number;   // how many balls
+  comment?: string;
   createdAt: Timestamp;
   reactions?: Record<string, string>; // { [deviceId]: ReactionType }
 }
@@ -32,14 +35,23 @@ export interface MatchInput {
   team2: string[];
   sets1: number;
   sets2: number;
+  handicapGiver?: 1 | 2;
+  handicapBalls?: number;
+  comment?: string;
 }
 
 const COL = "matches";
 
+function clean<T extends object>(data: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  ) as Partial<T>;
+}
+
 export async function addMatch(data: MatchInput): Promise<string> {
   const db = await getDb();
   const ref = await addDoc(collection(db, COL), {
-    ...data,
+    ...clean(data),
     createdAt: Timestamp.now(),
   });
   return ref.id;
@@ -47,7 +59,7 @@ export async function addMatch(data: MatchInput): Promise<string> {
 
 export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   const db = await getDb();
-  await updateDoc(doc(db, COL, id), { ...data });
+  await updateDoc(doc(db, COL, id), clean(data));
 }
 
 export async function deleteMatch(id: string): Promise<void> {

@@ -179,6 +179,26 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
           </div>
         </div>
 
+        {/* Handicap + Comment */}
+        {(match.handicapGiver || match.comment) && (
+          <div className="px-4 pb-2 flex flex-col gap-1">
+            {match.handicapGiver && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs">⚖️</span>
+                <span className="text-xs text-orange-700 font-semibold">
+                  {match.handicapGiver === 1
+                    ? `${team1Label} chấp ${team2Label}`
+                    : `${team2Label} chấp ${team1Label}`
+                  }{" "}{match.handicapBalls} bóng
+                </span>
+              </div>
+            )}
+            {match.comment && (
+              <p className="text-xs text-gray-500 italic">💬 {match.comment}</p>
+            )}
+          </div>
+        )}
+
         {/* Reactions bar */}
         {hasReactions && (
           <div className="flex items-center gap-1.5 px-4 pb-2.5 flex-wrap">

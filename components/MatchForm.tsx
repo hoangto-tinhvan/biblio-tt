@@ -13,6 +13,7 @@ interface Props {
 }
 
 const SET_OPTIONS = [0, 1, 2, 3];
+const BALL_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function MatchForm({ initial, members, onSave, onCancel }: Props) {
   const today = new Date().toISOString().split("T")[0];
@@ -28,6 +29,17 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
   const defaultScore = (t: MatchType) => t === "don" ? 2 : 3;
   const [sets1, setSets1] = useState(initial?.sets1 ?? defaultScore("don"));
   const [sets2, setSets2] = useState(initial?.sets2 ?? defaultScore("don"));
+
+  // Handicap
+  const [handicapGiver, setHandicapGiver] = useState<1 | 2 | null>(
+    initial?.handicapGiver ?? null
+  );
+  const [handicapBalls, setHandicapBalls] = useState<number>(
+    initial?.handicapBalls ?? 1
+  );
+
+  // Comment
+  const [comment, setComment] = useState(initial?.comment ?? "");
 
   const handleTypeChange = (t: MatchType) => {
     setType(t);
@@ -63,6 +75,9 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
         team1: type === "don" ? [p1a] : [p1a, p1b],
         team2: type === "don" ? [p2a] : [p2a, p2b],
         sets1, sets2,
+        handicapGiver: handicapGiver ?? undefined,
+        handicapBalls: handicapGiver ? handicapBalls : undefined,
+        comment: comment.trim() || undefined,
       });
     } catch (e) {
       setError("Lưu thất bại, thử lại.");
@@ -70,6 +85,9 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
       setSaving(false);
     }
   };
+
+  const giverLabel = (g: 1 | 2) => g === 1 ? team1Label : team2Label;
+  const receiverLabel = (g: 1 | 2) => g === 1 ? team2Label : team1Label;
 
   return (
     <div className="flex flex-col gap-4">
@@ -127,50 +145,91 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
       {/* Score */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-3">
         <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Tỉ số (số set thắng)</p>
-
         <div className="flex items-center gap-3">
-          {/* Team 1 score */}
           <div className="flex-1 flex flex-col items-center gap-1">
             <span className="text-xs font-semibold text-gray-500 truncate w-full text-center">{team1Label}</span>
-            <select
-              value={sets1}
-              onChange={(e) => setSets1(Number(e.target.value))}
-              className="w-full appearance-none bg-gray-50 border-2 border-gray-200 rounded-xl text-center text-3xl font-bold text-gray-900 py-3 focus:outline-none focus:border-blue-500"
-            >
-              {SET_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
+            <select value={sets1} onChange={(e) => setSets1(Number(e.target.value))}
+              className="w-full appearance-none bg-gray-50 border-2 border-gray-200 rounded-xl text-center text-3xl font-bold text-gray-900 py-3 focus:outline-none focus:border-blue-500">
+              {SET_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
-
-          {/* Dash */}
           <span className="text-2xl font-light text-gray-300 mb-0 mt-5">–</span>
-
-          {/* Team 2 score */}
           <div className="flex-1 flex flex-col items-center gap-1">
             <span className="text-xs font-semibold text-gray-500 truncate w-full text-center">{team2Label}</span>
-            <select
-              value={sets2}
-              onChange={(e) => setSets2(Number(e.target.value))}
-              className="w-full appearance-none bg-gray-50 border-2 border-gray-200 rounded-xl text-center text-3xl font-bold text-gray-900 py-3 focus:outline-none focus:border-blue-500"
-            >
-              {SET_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
+            <select value={sets2} onChange={(e) => setSets2(Number(e.target.value))}
+              className="w-full appearance-none bg-gray-50 border-2 border-gray-200 rounded-xl text-center text-3xl font-bold text-gray-900 py-3 focus:outline-none focus:border-blue-500">
+              {SET_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
         </div>
-
-        {/* Winner preview */}
         {winnerLabel ? (
           <div className="flex items-center justify-center gap-2 bg-green-50 rounded-xl py-2 px-3">
             <span className="text-green-600 text-sm font-semibold">🏆 {winnerLabel} thắng</span>
           </div>
-        ) : sets1 === sets2 && (sets1 > 0) ? (
+        ) : sets1 === sets2 && sets1 > 0 ? (
           <div className="flex items-center justify-center gap-2 bg-red-50 rounded-xl py-2 px-3">
             <span className="text-red-500 text-sm font-semibold">Tỉ số hoà — cần có người thắng</span>
           </div>
         ) : null}
+      </div>
+
+      {/* Handicap */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-3">
+        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Chấp bóng (tuỳ chọn)</p>
+        <div className="flex gap-2">
+          {([null, 1, 2] as (1 | 2 | null)[]).map((g) => (
+            <button
+              key={String(g)} type="button"
+              onClick={() => setHandicapGiver(g)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                handicapGiver === g
+                  ? "bg-orange-500 text-white shadow-sm"
+                  : "bg-gray-50 border border-gray-200 text-gray-600"
+              }`}
+            >
+              {g === null ? "Không chấp" : `${giverLabel(g)} chấp`}
+            </button>
+          ))}
+        </div>
+
+        {handicapGiver && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 flex-1">
+              <span className="font-semibold text-orange-600">{giverLabel(handicapGiver)}</span>
+              {" "}chấp{" "}
+              <span className="font-semibold">{receiverLabel(handicapGiver)}</span>
+            </span>
+            <select
+              value={handicapBalls}
+              onChange={(e) => setHandicapBalls(Number(e.target.value))}
+              className="appearance-none bg-gray-50 border-2 border-orange-300 rounded-xl text-center text-xl font-bold text-orange-600 py-2 px-3 focus:outline-none focus:border-orange-500 w-20"
+            >
+              {BALL_OPTIONS.map((n) => (
+                <option key={n} value={n}>{n} bóng</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {handicapGiver && (
+          <div className="bg-orange-50 rounded-xl py-2 px-3 text-center">
+            <span className="text-orange-700 text-sm font-semibold">
+              ⚖️ {giverLabel(handicapGiver)} chấp {receiverLabel(handicapGiver)} {handicapBalls} bóng
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Comment */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Ghi chú (tuỳ chọn)</label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder='Ví dụ: "Huế hôm nay ăn gian quá 😄"'
+          rows={2}
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
       </div>
 
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
