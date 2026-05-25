@@ -10,9 +10,13 @@ type Tab = "nguoi" | "cap" | "doi-khang";
 const MEDALS = ["🥇", "🥈", "🥉"];
 const ln = (name: string) => name.trim().split(" ").pop() ?? name;
 
-function currentMonthDoubleStats(matches: Match[]) {
-  const now = new Date();
-  const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+// "YYYY-MM" → "Tháng M/YYYY"
+function formatMonth(prefix: string) {
+  const [y, m] = prefix.split("-");
+  return `Tháng ${parseInt(m)}/${y}`;
+}
+
+function doubleStatsForMonth(matches: Match[], prefix: string) {
   const doubles = matches.filter((m) => m.type === "doi" && m.date.startsWith(prefix));
   const lossMap = new Map<string, number>();
   for (const m of doubles) {
@@ -25,10 +29,18 @@ function currentMonthDoubleStats(matches: Match[]) {
   return { total: doubles.length, losses };
 }
 
+function allDoubleMonths(matches: Match[]): string[] {
+  const set = new Set<string>();
+  for (const m of matches) {
+    if (m.type === "doi") set.add(m.date.slice(0, 7));
+  }
+  return Array.from(set).sort((a, b) => b.localeCompare(a)); // newest first
+}
+
 export default function ThongKePage() {
   const { matches, loading } = useData();
   const [tab, setTab] = useState<Tab>("nguoi");
-  const [showDoubleModal, setShowDoubleModal] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const playerStats = computePlayerStats(matches);
   const pairStats = computePairStats(matches);
@@ -37,33 +49,41 @@ export default function ThongKePage() {
   const singleMatches = matches.filter((m) => m.type === "don").length;
   const doubleMatches = matches.filter((m) => m.type === "doi").length;
 
-  const doubleModal = currentMonthDoubleStats(matches);
   const now = new Date();
-  const monthLabel = `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
+  const currentPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const months = allDoubleMonths(matches);
+  const activeMonth = selectedMonth ?? currentPrefix;
+  const monthStats = doubleStatsForMonth(matches, activeMonth);
+  const pastMonths = months.filter((m) => m !== currentPrefix);
 
   return (
     <>
       <PageHeader title="Thống kê" />
 
       {/* Double stats modal */}
-      {showDoubleModal && (
+      {selectedMonth !== null && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShowDoubleModal(false)} />
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(340px,90vw)] bg-white rounded-3xl shadow-2xl overflow-hidden">
-            <div className="bg-blue-600 px-5 py-4">
-              <p className="text-white font-bold text-base">{monthLabel}</p>
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSelectedMonth(null)} />
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-blue-600 px-5 py-4 flex-shrink-0">
+              <p className="text-white font-bold text-base">{formatMonth(activeMonth)}</p>
               <p className="text-white/80 text-sm mt-0.5">Thống kê trận đôi</p>
             </div>
-            <div className="px-5 py-4 flex flex-col gap-3">
+
+            <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-3">
+              {/* Current month total */}
               <div className="flex items-center justify-between bg-blue-50 rounded-2xl px-4 py-3">
                 <span className="text-sm font-semibold text-blue-800">Tổng số trận đôi</span>
-                <span className="text-2xl font-bold text-blue-600">{doubleModal.total}</span>
+                <span className="text-2xl font-bold text-blue-600">{monthStats.total}</span>
               </div>
-              {doubleModal.losses.length > 0 ? (
+
+              {/* Losses list */}
+              {monthStats.losses.length > 0 ? (
                 <>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">Số trận thua</p>
                   <div className="flex flex-col gap-2">
-                    {doubleModal.losses.map(({ name, count }, i) => (
+                    {monthStats.losses.map(({ name, count }, i) => (
                       <div key={name} className="flex items-center gap-3 px-1">
                         <span className="text-base w-6 text-center">{i === 0 ? "😓" : i === 1 ? "😕" : "😐"}</span>
                         <span className="flex-1 text-sm font-medium text-gray-800">{name}</span>
@@ -73,11 +93,44 @@ export default function ThongKePage() {
                   </div>
                 </>
               ) : (
-                <p className="text-center text-gray-400 text-sm py-2">Chưa có trận đôi nào tháng này</p>
+                <p className="text-center text-gray-400 text-sm py-2">Chưa có trận đôi nào</p>
               )}
+
+              {/* Past months */}
+              {pastMonths.length > 0 && (
+                <>
+                  <div className="border-t border-gray-100 pt-3 mt-1">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-2">Các tháng trước</p>
+                    <div className="flex flex-col gap-1.5">
+                      {pastMonths.map((prefix) => {
+                        const s = doubleStatsForMonth(matches, prefix);
+                        return (
+                          <button
+                            key={prefix}
+                            onClick={() => setSelectedMonth(prefix)}
+                            className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-left transition-colors ${
+                              activeMonth === prefix
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-50 hover:bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            <span className="text-sm font-semibold">{formatMonth(prefix)}</span>
+                            <span className={`text-sm font-bold ${activeMonth === prefix ? "text-white/80" : "text-blue-600"}`}>
+                              {s.total} trận
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="px-5 pb-5 flex-shrink-0">
               <button
-                onClick={() => setShowDoubleModal(false)}
-                className="mt-1 w-full py-3 rounded-2xl bg-gray-100 text-gray-600 font-semibold text-sm active:bg-gray-200 transition-colors"
+                onClick={() => setSelectedMonth(null)}
+                className="w-full py-3 rounded-2xl bg-gray-100 text-gray-600 font-semibold text-sm active:bg-gray-200 transition-colors"
               >
                 Đóng
               </button>
@@ -101,7 +154,7 @@ export default function ThongKePage() {
               <p className="text-xs text-gray-500 mt-0.5 font-medium">Đơn</p>
             </div>
             <button
-              onClick={() => setShowDoubleModal(true)}
+              onClick={() => setSelectedMonth(currentPrefix)}
               className="bg-white rounded-2xl border border-blue-200 shadow-sm p-3 text-center active:bg-blue-50 transition-colors"
             >
               <p className="text-2xl font-bold text-blue-600">{doubleMatches}</p>
