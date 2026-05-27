@@ -16,25 +16,44 @@ function formatMonth(prefix: string) {
   return `Tháng ${parseInt(m)}/${y}`;
 }
 
-function doubleStatsForMonth(matches: Match[], prefix: string) {
-  const doubles = matches.filter((m) => m.type === "doi" && m.date.startsWith(prefix));
-  const lossMap = new Map<string, number>();
-  for (const m of doubles) {
+function monthStatsFor(matches: Match[], prefix: string) {
+  const month = matches.filter((m) => m.date.startsWith(prefix));
+  const singles = month.filter((m) => m.type === "don");
+  const doubles = month.filter((m) => m.type === "doi");
+
+  const singleLoss = new Map<string, number>();
+  const doubleLoss = new Map<string, number>();
+  const players = new Set<string>();
+
+  for (const m of singles) {
+    [...m.team1, ...m.team2].forEach((p) => players.add(p));
     const losers = m.sets1 > m.sets2 ? m.team2 : m.team1;
-    for (const p of losers) lossMap.set(p, (lossMap.get(p) ?? 0) + 1);
+    losers.forEach((p) => singleLoss.set(p, (singleLoss.get(p) ?? 0) + 1));
   }
-  const losses = Array.from(lossMap.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-  return { total: doubles.length, losses };
+  for (const m of doubles) {
+    [...m.team1, ...m.team2].forEach((p) => players.add(p));
+    const losers = m.sets1 > m.sets2 ? m.team2 : m.team1;
+    losers.forEach((p) => doubleLoss.set(p, (doubleLoss.get(p) ?? 0) + 1));
+  }
+
+  const rows = Array.from(players)
+    .map((name) => ({
+      name,
+      singleLosses: singleLoss.get(name) ?? 0,
+      doubleLosses: doubleLoss.get(name) ?? 0,
+    }))
+    .filter((r) => r.singleLosses > 0 || r.doubleLosses > 0)
+    .sort((a, b) =>
+      (b.singleLosses + b.doubleLosses) - (a.singleLosses + a.doubleLosses)
+    );
+
+  return { totalSingles: singles.length, totalDoubles: doubles.length, rows };
 }
 
-function allDoubleMonths(matches: Match[]): string[] {
+function allActiveMonths(matches: Match[]): string[] {
   const set = new Set<string>();
-  for (const m of matches) {
-    if (m.type === "doi") set.add(m.date.slice(0, 7));
-  }
-  return Array.from(set).sort((a, b) => b.localeCompare(a)); // newest first
+  for (const m of matches) set.add(m.date.slice(0, 7));
+  return Array.from(set).sort((a, b) => b.localeCompare(a));
 }
 
 export default function ThongKePage() {
@@ -51,9 +70,9 @@ export default function ThongKePage() {
 
   const now = new Date();
   const currentPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const months = allDoubleMonths(matches);
+  const months = allActiveMonths(matches);
   const activeMonth = selectedMonth ?? currentPrefix;
-  const monthStats = doubleStatsForMonth(matches, activeMonth);
+  const monthStats = monthStatsFor(matches, activeMonth);
   const pastMonths = months.filter((m) => m !== currentPrefix);
 
   return (
@@ -68,62 +87,77 @@ export default function ThongKePage() {
             {/* Header */}
             <div className="bg-blue-600 px-5 py-4 flex-shrink-0">
               <p className="text-white font-bold text-base">{formatMonth(activeMonth)}</p>
-              <p className="text-white/80 text-sm mt-0.5">Thống kê trận đôi</p>
+              <p className="text-white/80 text-sm mt-0.5">Tổng hợp trận thua · Góp quỹ</p>
             </div>
 
             <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-3">
-              {/* Current month total */}
-              <div className="flex items-center justify-between bg-blue-50 rounded-2xl px-4 py-3">
-                <span className="text-sm font-semibold text-blue-800">Tổng số trận đôi</span>
-                <span className="text-2xl font-bold text-blue-600">{monthStats.total}</span>
+              {/* Totals */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-blue-50 rounded-2xl px-3 py-2.5 text-center">
+                  <p className="text-xl font-bold text-blue-600">{monthStats.totalSingles}</p>
+                  <p className="text-xs text-blue-700 font-medium mt-0.5">Trận đơn</p>
+                </div>
+                <div className="bg-purple-50 rounded-2xl px-3 py-2.5 text-center">
+                  <p className="text-xl font-bold text-purple-600">{monthStats.totalDoubles}</p>
+                  <p className="text-xs text-purple-700 font-medium mt-0.5">Trận đôi</p>
+                </div>
               </div>
 
-              {/* Losses list */}
-              {monthStats.losses.length > 0 ? (
-                <>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">Số trận thua</p>
-                  <div className="flex flex-col gap-2">
-                    {monthStats.losses.map(({ name, count }, i) => (
-                      <div key={name} className="flex items-center gap-3 px-1">
-                        <span className="text-base w-6 text-center">{i === 0 ? "😓" : i === 1 ? "😕" : "😐"}</span>
-                        <span className="flex-1 text-sm font-medium text-gray-800">{name}</span>
-                        <span className="text-sm font-bold text-red-500">{count} thua</span>
-                      </div>
-                    ))}
+              {/* Loss table */}
+              {monthStats.rows.length > 0 ? (
+                <div className="bg-gray-50 rounded-2xl overflow-hidden">
+                  {/* Table header */}
+                  <div className="grid grid-cols-[1fr_64px_64px] px-4 py-2 border-b border-gray-200">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Thành viên</span>
+                    <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide text-center">Đơn</span>
+                    <span className="text-xs font-semibold text-purple-500 uppercase tracking-wide text-center">Đôi</span>
                   </div>
-                </>
+                  {/* Rows */}
+                  {monthStats.rows.map(({ name, singleLosses, doubleLosses }, i) => (
+                    <div
+                      key={name}
+                      className={`grid grid-cols-[1fr_64px_64px] px-4 py-2.5 items-center ${i < monthStats.rows.length - 1 ? "border-b border-gray-100" : ""}`}
+                    >
+                      <span className="text-sm font-medium text-gray-800">{name}</span>
+                      <span className={`text-sm font-bold text-center ${singleLosses > 0 ? "text-blue-600" : "text-gray-300"}`}>
+                        {singleLosses > 0 ? singleLosses : "—"}
+                      </span>
+                      <span className={`text-sm font-bold text-center ${doubleLosses > 0 ? "text-purple-600" : "text-gray-300"}`}>
+                        {doubleLosses > 0 ? doubleLosses : "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <p className="text-center text-gray-400 text-sm py-2">Chưa có trận đôi nào</p>
+                <p className="text-center text-gray-400 text-sm py-2">Chưa có trận nào trong tháng này</p>
               )}
 
               {/* Past months */}
               {pastMonths.length > 0 && (
-                <>
-                  <div className="border-t border-gray-100 pt-3 mt-1">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-2">Các tháng trước</p>
-                    <div className="flex flex-col gap-1.5">
-                      {pastMonths.map((prefix) => {
-                        const s = doubleStatsForMonth(matches, prefix);
-                        return (
-                          <button
-                            key={prefix}
-                            onClick={() => setSelectedMonth(prefix)}
-                            className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-left transition-colors ${
-                              activeMonth === prefix
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-50 hover:bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            <span className="text-sm font-semibold">{formatMonth(prefix)}</span>
-                            <span className={`text-sm font-bold ${activeMonth === prefix ? "text-white/80" : "text-blue-600"}`}>
-                              {s.total} trận
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                <div className="border-t border-gray-100 pt-3 mt-1">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-2">Các tháng trước</p>
+                  <div className="flex flex-col gap-1.5">
+                    {pastMonths.map((prefix) => {
+                      const s = monthStatsFor(matches, prefix);
+                      return (
+                        <button
+                          key={prefix}
+                          onClick={() => setSelectedMonth(prefix)}
+                          className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-left transition-colors ${
+                            activeMonth === prefix
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-50 hover:bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          <span className="text-sm font-semibold">{formatMonth(prefix)}</span>
+                          <span className={`text-xs font-medium ${activeMonth === prefix ? "text-white/70" : "text-gray-400"}`}>
+                            {s.totalSingles} đơn · {s.totalDoubles} đôi
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                </>
+                </div>
               )}
             </div>
 
