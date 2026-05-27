@@ -24,6 +24,9 @@ export interface Match {
   handicapGiver?: 1 | 2;   // which team gives the handicap
   handicapBalls?: number;   // how many balls
   comment?: string;
+  commentBy?: string;       // member name who wrote the comment
+  addedBy?: string;         // member name who created the match
+  changedBy?: string;       // member name who last edited (if different from addedBy)
   createdAt: Timestamp;
   reactions?: Record<string, string>; // { [deviceId]: ReactionType }
 }
@@ -38,6 +41,9 @@ export interface MatchInput {
   handicapGiver?: 1 | 2;
   handicapBalls?: number;
   comment?: string;
+  commentBy?: string;
+  addedBy?: string;
+  changedBy?: string;
 }
 
 const COL = "matches";

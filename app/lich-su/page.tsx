@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MatchInput, updateMatch, deleteMatch, Match } from "@/lib/firestore";
 import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 import PageHeader from "@/components/PageHeader";
@@ -17,6 +18,7 @@ function formatDateVN(dateStr: string) {
 
 export default function LichSuPage() {
   const { matches, members, loading, refresh } = useData();
+  const { user } = useAuth();
   const [editing, setEditing] = useState<Match | null>(null);
   const [openDates, setOpenDates] = useState<Set<string>>(new Set());
 
@@ -41,7 +43,13 @@ export default function LichSuPage() {
 
   const handleEdit = async (data: MatchInput) => {
     if (!editing) return;
-    await updateMatch(editing.id, data);
+    const changedBy = user?.name && user.name !== editing.addedBy ? user.name : undefined;
+    await updateMatch(editing.id, {
+      ...data,
+      addedBy: editing.addedBy,
+      changedBy,
+      commentBy: data.comment ? user?.name : undefined,
+    });
     await refresh();
     setEditing(null);
   };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MatchInput, addMatch, updateMatch, deleteMatch, Match } from "@/lib/firestore";
 import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
 import MatchCard from "@/components/MatchCard";
 import MatchForm from "@/components/MatchForm";
 import PageHeader from "@/components/PageHeader";
@@ -18,6 +19,7 @@ function formatDateVN(dateStr: string) {
 export default function HomePage() {
   const today = new Date().toISOString().split("T")[0];
   const { matches, members, loading, refresh } = useData();
+  const { user } = useAuth();
   const [view, setView] = useState<View>("list");
   const [editing, setEditing] = useState<Match | null>(null);
 
@@ -26,14 +28,24 @@ export default function HomePage() {
     .sort((a, b) => a.createdAt.seconds - b.createdAt.seconds);
 
   const handleAdd = async (data: MatchInput) => {
-    await addMatch(data);
+    await addMatch({
+      ...data,
+      addedBy: user?.name,
+      commentBy: data.comment ? user?.name : undefined,
+    });
     await refresh();
     setView("list");
   };
 
   const handleEdit = async (data: MatchInput) => {
     if (!editing) return;
-    await updateMatch(editing.id, data);
+    const changedBy = user?.name && user.name !== editing.addedBy ? user.name : undefined;
+    await updateMatch(editing.id, {
+      ...data,
+      addedBy: editing.addedBy,
+      changedBy,
+      commentBy: data.comment ? user?.name : undefined,
+    });
     await refresh();
     setView("list");
     setEditing(null);

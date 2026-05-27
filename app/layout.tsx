@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
-import PasscodeGate from "@/components/PasscodeGate";
+import AuthGate from "@/components/AuthGate";
 import { DataProvider } from "@/contexts/DataContext";
 
 export const metadata: Metadata = {
@@ -35,12 +35,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* DataProvider is OUTSIDE PasscodeGate so data fetching starts immediately,
             even while the user is typing the PIN. */}
         <DataProvider>
-          <PasscodeGate>
+          <AuthGate>
             <div className="max-w-md mx-auto" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
               {children}
             </div>
             <BottomNav />
-          </PasscodeGate>
+          </AuthGate>
         </DataProvider>
       </body>
     </html>

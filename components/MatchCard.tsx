@@ -179,9 +179,9 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
           </div>
         </div>
 
-        {/* Handicap + Comment */}
-        {(match.handicapGiver || match.comment) && (
-          <div className="px-4 pb-2 flex flex-col gap-1">
+        {/* Handicap + Comment + Attribution */}
+        {(match.handicapGiver || match.comment || match.addedBy) && (
+          <div className="px-4 pb-2.5 flex flex-col gap-1">
             {match.handicapGiver && (
               <div className="flex items-center gap-1.5">
                 <span className="text-xs">⚖️</span>
@@ -194,7 +194,18 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
               </div>
             )}
             {match.comment && (
-              <p className="text-xs text-gray-500 italic">💬 {match.comment}</p>
+              <p className="text-xs text-gray-500 italic">
+                💬 {match.comment}
+                {match.commentBy && (
+                  <span className="text-gray-400 not-italic"> — {lastName(match.commentBy)}</span>
+                )}
+              </p>
+            )}
+            {(match.addedBy || match.changedBy) && (
+              <p className="text-[10px] text-gray-300 mt-0.5">
+                {match.addedBy && <>Thêm bởi {lastName(match.addedBy)}</>}
+                {match.changedBy && <> · Sửa bởi {lastName(match.changedBy)}</>}
+              </p>
             )}
           </div>
         )}
