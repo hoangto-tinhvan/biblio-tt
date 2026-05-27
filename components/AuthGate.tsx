@@ -5,6 +5,7 @@ import { useData } from "@/contexts/DataContext";
 import { AuthContext, AuthUser } from "@/contexts/AuthContext";
 
 const SESSION_KEY = "biblio_user";
+const ADMIN_PIN = "0111";
 const KEYS = [
   ["1", "2", "3"],
   ["4", "5", "6"],
@@ -54,6 +55,14 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     setInput(next);
 
     if (next.length === 4) {
+      // Find member whose phone ends with these 4 digits
+      // Admin PIN bypass
+      if (next === ADMIN_PIN) {
+        sessionStorage.setItem(SESSION_KEY, "Admin");
+        setThemeColor(true);
+        setUser({ name: "Admin" });
+        return;
+      }
       // Find member whose phone ends with these 4 digits
       const match = members.find(
         (m) => m.phone && m.phone.replace(/\D/g, "").slice(-4) === next
