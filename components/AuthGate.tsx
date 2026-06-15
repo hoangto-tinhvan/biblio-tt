@@ -104,10 +104,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       </p>
       <p className="text-white text-lg font-semibold mb-1">Nhập 4 số cuối SĐT</p>
       {loading ? (
-        <p className="text-white/40 text-xs mb-8">Đang tải danh sách thành viên...</p>
+        <p className="text-white/40 text-xs mb-8">Đang tải...</p>
       ) : members.filter((m) => m.phone).length === 0 ? (
-        <p className="text-orange-400 text-xs text-center px-8 mb-8">
-          Chưa có thành viên nào có số điện thoại.{"\n"}Nhờ admin thêm SĐT vào hồ sơ thành viên.
+        <p className="text-orange-300 text-xs text-center px-8 mb-8">
+          Chưa có SĐT trong hồ sơ thành viên.{"\n"}Nhập PIN admin để vào thiết lập.
         </p>
       ) : (
         <p className="text-white/40 text-xs mb-8">để xác định bạn là ai</p>
@@ -153,6 +153,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       </div>
+
+      <p className="text-white/20 text-[10px] mt-8 text-center">
+        Không đăng nhập được? Nhờ admin hỗ trợ thêm SĐT vào hồ sơ.
+      </p>
 
       <style>{`
         @keyframes shake {
