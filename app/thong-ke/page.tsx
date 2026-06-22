@@ -56,10 +56,29 @@ function allActiveMonths(matches: Match[]): string[] {
   return Array.from(set).sort((a, b) => b.localeCompare(a));
 }
 
+function h2hLookup(matches: Match[], nameA: string, nameB: string) {
+  const singles = matches.filter(
+    (m) => m.type === "don" &&
+      ((m.team1[0] === nameA && m.team2[0] === nameB) ||
+       (m.team1[0] === nameB && m.team2[0] === nameA))
+  );
+  let winsA = 0, winsB = 0;
+  for (const m of singles) {
+    const winner = m.sets1 > m.sets2 ? m.team1[0] : m.team2[0];
+    if (winner === nameA) winsA++; else winsB++;
+  }
+  const total = singles.length;
+  const rateA = total > 0 ? Math.round((winsA / total) * 100) : 0;
+  const rateB = total > 0 ? Math.round((winsB / total) * 100) : 0;
+  return { total, winsA, winsB, rateA, rateB };
+}
+
 export default function ThongKePage() {
   const { matches, loading } = useData();
   const [tab, setTab] = useState<Tab>("nguoi");
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [h2hA, setH2hA] = useState("");
+  const [h2hB, setH2hB] = useState("");
 
   const playerStats = computePlayerStats(matches);
   const pairStats = computePairStats(matches);
@@ -216,6 +235,12 @@ export default function ThongKePage() {
               {playerStats.length === 0
                 ? <p className="text-center text-gray-400 py-8">Chưa có dữ liệu</p>
                 : playerStats.map((p, i) => <PlayerRow key={p.name} stat={p} rank={i} />)}
+
+              {/* H2H Lookup */}
+              {playerStats.length >= 2 && (
+                <H2HLookup matches={matches} players={playerStats.map((p) => p.name)}
+                  nameA={h2hA} nameB={h2hB} setA={setH2hA} setB={setH2hB} />
+              )}
             </div>
           )}
 
@@ -277,6 +302,80 @@ function PairRow({ stat, rank }: { stat: PairStats; rank: number }) {
         <p className="text-lg font-bold text-blue-600">{stat.winRate}%</p>
         <p className="text-xs text-gray-400">thắng</p>
       </div>
+    </div>
+  );
+}
+
+function H2HLookup({ matches, players, nameA, nameB, setA, setB }: {
+  matches: Match[];
+  players: string[];
+  nameA: string;
+  nameB: string;
+  setA: (v: string) => void;
+  setB: (v: string) => void;
+}) {
+  const result = nameA && nameB && nameA !== nameB
+    ? h2hLookup(matches, nameA, nameB)
+    : null;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 mt-2 flex flex-col gap-3">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tra cứu đối đầu</p>
+
+      <div className="flex items-center gap-2">
+        <select
+          value={nameA}
+          onChange={(e) => setA(e.target.value)}
+          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Chọn người 1</option>
+          {players.filter((p) => p !== nameB).map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+
+        <span className="text-gray-300 font-light text-lg flex-shrink-0">vs</span>
+
+        <select
+          value={nameB}
+          onChange={(e) => setB(e.target.value)}
+          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Chọn người 2</option>
+          {players.filter((p) => p !== nameA).map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+
+      {result && (
+        result.total === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-1">
+            {ln(nameA)} và {ln(nameB)} chưa đấu trận đơn nào
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-bold text-gray-800">{ln(nameA)}</span>
+              <span className="text-xs text-gray-400">{result.total} trận đơn</span>
+              <span className="font-bold text-gray-800">{ln(nameB)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold text-blue-600">{result.winsA}</span>
+              <span className="text-xs text-gray-300">thắng</span>
+              <span className="text-2xl font-bold text-purple-500">{result.winsB}</span>
+            </div>
+            <div className="flex h-2.5 rounded-full overflow-hidden bg-gray-100">
+              <div className="bg-blue-500 transition-all" style={{ width: `${result.rateA}%` }} />
+              <div className="bg-purple-400 transition-all" style={{ width: `${result.rateB}%` }} />
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-blue-600 font-semibold">{result.rateA}%</span>
+              <span className="text-purple-500 font-semibold">{result.rateB}%</span>
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }
