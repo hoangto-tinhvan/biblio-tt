@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Member, MemberInput, addMember, updateMember, deleteMember, compressToDataUrl } from "@/lib/members";
+import { renamePlayerInMatches } from "@/lib/firestore";
 import { useData } from "@/contexts/DataContext";
-import { computePlayerStats } from "@/lib/stats";
+import { computePlayerStats, getKnownPlayers } from "@/lib/stats";
 import Avatar from "@/components/Avatar";
 import MemberForm from "@/components/MemberForm";
 import PageHeader from "@/components/PageHeader";
@@ -130,6 +131,9 @@ export default function ThanhVienPage() {
             </div>
           )}
 
+          {/* Merge alias names */}
+          <MergeNames member={selected} matches={matches} members={members} onDone={refresh} />
+
           {/* Actions */}
           <div className="flex gap-3">
             <button
@@ -207,6 +211,63 @@ function AvatarLarge({ name }: { name: string }) {
     <div className={`w-2/3 aspect-square rounded-full ${color} flex items-center justify-center text-white font-bold shadow-xl`}
       style={{ fontSize: "clamp(3rem, 15vw, 6rem)" }}>
       {initials}
+    </div>
+  );
+}
+
+function MergeNames({ member, matches, members, onDone }: {
+  member: Member;
+  matches: import("@/lib/firestore").Match[];
+  members: Member[];
+  onDone: () => Promise<void>;
+}) {
+  const [alias, setAlias] = useState("");
+  const [merging, setMerging] = useState(false);
+
+  // Names in match history that are NOT an exact member name → likely typos/aliases
+  const memberNames = new Set(members.map((m) => m.name));
+  const knownPlayers = getKnownPlayers(matches);
+  const aliases = knownPlayers.filter(
+    (p) => p !== member.name && !memberNames.has(p)
+  );
+
+  if (aliases.length === 0) return null;
+
+  const handleMerge = async () => {
+    if (!alias) return;
+    if (!window.confirm(`Gộp "${alias}" → "${member.name}" trong toàn bộ lịch sử?`)) return;
+    setMerging(true);
+    try {
+      const count = await renamePlayerInMatches(alias, member.name);
+      await onDone();
+      setAlias("");
+      alert(`Đã cập nhật ${count} trận.`);
+    } finally {
+      setMerging(false);
+    }
+  };
+
+  return (
+    <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 flex flex-col gap-3">
+      <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">Gộp tên trong lịch sử</p>
+      <p className="text-xs text-yellow-600">Nếu tên này được nhập khác đi trong một số trận, chọn tên cũ để gộp vào "{member.name}".</p>
+      <div className="flex gap-2">
+        <select
+          value={alias}
+          onChange={(e) => setAlias(e.target.value)}
+          className="flex-1 bg-white border border-yellow-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        >
+          <option value="">Chọn tên cần gộp...</option>
+          {aliases.map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <button
+          onClick={handleMerge}
+          disabled={!alias || merging}
+          className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-sm font-semibold disabled:opacity-40 active:scale-95 transition-transform"
+        >
+          {merging ? "..." : "Gộp"}
+        </button>
+      </div>
     </div>
   );
 }
