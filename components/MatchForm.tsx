@@ -67,6 +67,7 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
   const handleSave = async () => {
     const err = validate();
     if (err) { setError(err); return; }
+    if (sets1 === sets2 && !window.confirm("Kết quả hoà, ko có người thắng?")) return;
     setSaving(true);
     try {
       await onSave({
