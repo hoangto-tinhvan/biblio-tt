@@ -109,9 +109,11 @@ export async function getAllMatches(): Promise<Match[]> {
 }
 
 export function getWinner(m: Match): string[] {
+  if (m.sets1 === m.sets2) return [];
   return m.sets1 > m.sets2 ? m.team1 : m.team2;
 }
 
 export function getLoser(m: Match): string[] {
+  if (m.sets1 === m.sets2) return [];
   return m.sets1 > m.sets2 ? m.team2 : m.team1;
 }

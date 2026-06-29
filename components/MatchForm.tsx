@@ -12,7 +12,7 @@ interface Props {
   onCancel: () => void;
 }
 
-const SET_OPTIONS = [0, 1, 2, 3];
+const SET_OPTIONS = [0, 1, 2, 3, 4, 5];
 const BALL_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function MatchForm({ initial, members, onSave, onCancel }: Props) {
@@ -61,7 +61,6 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
     const players = type === "don" ? [p1a, p2a] : [p1a, p1b, p2a, p2b];
     if (players.some((p) => !p.trim())) return "Vui lòng chọn đủ người chơi.";
     if (new Set(players).size !== players.length) return "Người chơi bị trùng.";
-    if (sets1 === sets2) return "Tỉ số phải có người thắng (không được hoà).";
     return "";
   };
 
@@ -167,8 +166,8 @@ export default function MatchForm({ initial, members, onSave, onCancel }: Props)
             <span className="text-green-600 text-sm font-semibold">🏆 {winnerLabel} thắng</span>
           </div>
         ) : sets1 === sets2 && sets1 > 0 ? (
-          <div className="flex items-center justify-center gap-2 bg-red-50 rounded-xl py-2 px-3">
-            <span className="text-red-500 text-sm font-semibold">Tỉ số hoà — cần có người thắng</span>
+          <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-xl py-2 px-3">
+            <span className="text-gray-500 text-sm font-semibold">🤝 Hoà</span>
           </div>
         ) : null}
       </div>

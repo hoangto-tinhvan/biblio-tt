@@ -60,11 +60,8 @@ export function computePairStats(matches: Match[]): PairStats[] {
     const k2 = pairKey(m.team2);
     ensure(k1).matches++;
     ensure(k2).matches++;
-    if (m.sets1 > m.sets2) {
-      ensure(k1).wins++;
-    } else {
-      ensure(k2).wins++;
-    }
+    if (m.sets1 > m.sets2) ensure(k1).wins++;
+    else if (m.sets2 > m.sets1) ensure(k2).wins++;
   }
 
   return Array.from(map.entries())
@@ -119,6 +116,7 @@ export function computeH2HStats(matches: Match[]): H2HStats[] {
       let wins2 = 0;
 
       for (const m of recent) {
+        if (m.sets1 === m.sets2) continue;
         const winner = m.sets1 > m.sets2 ? m.team1[0] : m.team2[0];
         if (winner === p1) wins1++;
         else wins2++;
