@@ -6,6 +6,30 @@ import { AuthContext, AuthUser } from "@/contexts/AuthContext";
 
 const SESSION_KEY = "biblio_user";
 const ADMIN_PIN = "0111";
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function readStoredUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const { name, loginAt } = JSON.parse(raw) as { name: string; loginAt: number };
+    if (Date.now() - loginAt > SESSION_TTL_MS) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return { name };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredUser(name: string) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ name, loginAt: Date.now() }));
+}
+
+function clearStoredUser() {
+  localStorage.removeItem(SESSION_KEY);
+}
 const KEYS = [
   ["1", "2", "3"],
   ["4", "5", "6"],
@@ -28,8 +52,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<AuthUser | null>(() => {
     if (typeof window === "undefined") return null;
-    const stored = sessionStorage.getItem(SESSION_KEY);
-    return stored ? { name: stored } : null;
+    return readStoredUser();
   });
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
@@ -40,7 +63,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearStoredUser();
     setUser(null);
   }, []);
 
@@ -58,7 +81,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       // Find member whose phone ends with these 4 digits
       // Admin PIN bypass
       if (next === ADMIN_PIN) {
-        sessionStorage.setItem(SESSION_KEY, "Admin");
+        writeStoredUser("Admin");
         setThemeColor(true);
         setUser({ name: "Admin" });
         return;
@@ -68,7 +91,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         (m) => m.phone && m.phone.replace(/\D/g, "").slice(-4) === next
       );
       if (match) {
-        sessionStorage.setItem(SESSION_KEY, match.name);
+        writeStoredUser(match.name);
         setThemeColor(true);
         setUser({ name: match.name });
       } else {
