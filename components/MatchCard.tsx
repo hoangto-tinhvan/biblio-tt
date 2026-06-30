@@ -18,6 +18,7 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
   const { refresh } = useData();
   const team1Label = match.team1.map(lastName).join(" & ");
   const team2Label = match.team2.map(lastName).join(" & ");
+  const isDraw = match.sets1 === match.sets2;
   const team1Wins = match.sets1 > match.sets2;
 
   const [showPicker, setShowPicker] = useState(false);
@@ -144,38 +145,46 @@ export default function MatchCard({ match, onEdit, onDelete, index }: Props) {
         {/* Scores */}
         <div className="flex items-center px-4 py-3 gap-3">
           {/* Team 1 */}
-          <div className={`flex-1 text-center ${team1Wins ? "" : "opacity-40"}`}>
-            <p className={`font-semibold text-base leading-tight ${team1Wins ? "text-gray-900" : "text-gray-500"}`}>
+          <div className={`flex-1 text-center ${!isDraw && !team1Wins ? "opacity-40" : ""}`}>
+            <p className={`font-semibold text-base leading-tight ${!isDraw && !team1Wins ? "text-gray-500" : "text-gray-900"}`}>
               {team1Label}
             </p>
-            {team1Wins && (
+            {isDraw ? (
+              <span className="inline-block mt-1 text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                HOÀ
+              </span>
+            ) : team1Wins ? (
               <span className="inline-block mt-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                 THẮNG
               </span>
-            )}
+            ) : null}
           </div>
 
           {/* Score */}
           <div className="flex items-center gap-1 px-3">
-            <span className={`text-2xl font-bold tabular-nums ${team1Wins ? "text-gray-900" : "text-gray-400"}`}>
+            <span className={`text-2xl font-bold tabular-nums ${!isDraw && !team1Wins ? "text-gray-400" : "text-gray-900"}`}>
               {match.sets1}
             </span>
             <span className="text-gray-300 font-light text-xl">–</span>
-            <span className={`text-2xl font-bold tabular-nums ${!team1Wins ? "text-gray-900" : "text-gray-400"}`}>
+            <span className={`text-2xl font-bold tabular-nums ${!isDraw && team1Wins ? "text-gray-400" : "text-gray-900"}`}>
               {match.sets2}
             </span>
           </div>
 
           {/* Team 2 */}
-          <div className={`flex-1 text-center ${!team1Wins ? "" : "opacity-40"}`}>
-            <p className={`font-semibold text-base leading-tight ${!team1Wins ? "text-gray-900" : "text-gray-500"}`}>
+          <div className={`flex-1 text-center ${!isDraw && team1Wins ? "opacity-40" : ""}`}>
+            <p className={`font-semibold text-base leading-tight ${!isDraw && team1Wins ? "text-gray-500" : "text-gray-900"}`}>
               {team2Label}
             </p>
-            {!team1Wins && (
+            {isDraw ? (
+              <span className="inline-block mt-1 text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                HOÀ
+              </span>
+            ) : !team1Wins ? (
               <span className="inline-block mt-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                 THẮNG
               </span>
-            )}
+            ) : null}
           </div>
         </div>
 
