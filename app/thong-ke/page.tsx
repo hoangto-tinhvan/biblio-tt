@@ -16,27 +16,26 @@ function formatMonth(prefix: string) {
   return `Tháng ${parseInt(m)}/${y}`;
 }
 
-function monthStatsFor(matches: Match[], prefix: string) {
+function monthStatsFor(matches: Match[], prefix: string, memberNames: string[]) {
   const month = matches.filter((m) => m.date.startsWith(prefix));
   const singles = month.filter((m) => m.type === "don");
   const doubles = month.filter((m) => m.type === "doi");
 
   const singleLoss = new Map<string, number>();
   const doubleLoss = new Map<string, number>();
-  const players = new Set<string>();
 
   for (const m of singles) {
-    [...m.team1, ...m.team2].forEach((p) => players.add(p));
+    if (m.sets1 === m.sets2) continue;
     const losers = m.sets1 > m.sets2 ? m.team2 : m.team1;
     losers.forEach((p) => singleLoss.set(p, (singleLoss.get(p) ?? 0) + 1));
   }
   for (const m of doubles) {
-    [...m.team1, ...m.team2].forEach((p) => players.add(p));
+    if (m.sets1 === m.sets2) continue;
     const losers = m.sets1 > m.sets2 ? m.team2 : m.team1;
     losers.forEach((p) => doubleLoss.set(p, (doubleLoss.get(p) ?? 0) + 1));
   }
 
-  const rows = Array.from(players)
+  const rows = memberNames
     .map((name) => ({
       name,
       singleLosses: singleLoss.get(name) ?? 0,
@@ -73,7 +72,7 @@ function h2hLookup(matches: Match[], nameA: string, nameB: string) {
 }
 
 export default function ThongKePage() {
-  const { matches, loading } = useData();
+  const { matches, members, loading } = useData();
   const [tab, setTab] = useState<Tab>("nguoi");
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [h2hA, setH2hA] = useState("");
@@ -86,11 +85,12 @@ export default function ThongKePage() {
   const singleMatches = matches.filter((m) => m.type === "don").length;
   const doubleMatches = matches.filter((m) => m.type === "doi").length;
 
+  const memberNames = members.map((m) => m.name);
   const now = new Date();
   const currentPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const months = allActiveMonths(matches);
   const activeMonth = selectedMonth ?? currentPrefix;
-  const monthStats = monthStatsFor(matches, activeMonth);
+  const monthStats = monthStatsFor(matches, activeMonth, memberNames);
   const pastMonths = months.filter((m) => m !== currentPrefix);
 
   return (
@@ -156,7 +156,7 @@ export default function ThongKePage() {
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-2">Các tháng trước</p>
                   <div className="flex flex-col gap-1.5">
                     {pastMonths.map((prefix) => {
-                      const s = monthStatsFor(matches, prefix);
+                      const s = monthStatsFor(matches, prefix, memberNames);
                       return (
                         <button
                           key={prefix}
