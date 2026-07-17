@@ -114,7 +114,7 @@ export default function ThongKePage() {
               <p className="text-white/80 text-sm mt-0.5">Tổng hợp trận thua · Góp quỹ</p>
             </div>
 
-            <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-3">
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3" style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
               {/* Totals */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-blue-50 rounded-2xl px-3 py-2.5 text-center">
@@ -129,7 +129,7 @@ export default function ThongKePage() {
 
               {/* Loss table */}
               {monthStats.rows.length > 0 ? (
-                <div className="bg-gray-50 rounded-2xl overflow-hidden">
+                <div className="bg-gray-50 rounded-2xl">
                   {/* Table header */}
                   <div className="grid grid-cols-[1fr_64px_64px] px-4 py-2 border-b border-gray-200">
                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Thành viên</span>
