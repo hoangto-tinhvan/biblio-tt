@@ -35,7 +35,13 @@ function monthStatsFor(matches: Match[], prefix: string, memberNames: string[]) 
     losers.forEach((p) => doubleLoss.set(p, (doubleLoss.get(p) ?? 0) + 1));
   }
 
-  const rows = memberNames
+  // Union of registered members + anyone who appeared in a match that month
+  const allNames = new Set<string>(memberNames);
+  for (const m of month) {
+    [...m.team1, ...m.team2].forEach((p) => allNames.add(p));
+  }
+
+  const rows = Array.from(allNames)
     .map((name) => ({
       name,
       singleLosses: singleLoss.get(name) ?? 0,
