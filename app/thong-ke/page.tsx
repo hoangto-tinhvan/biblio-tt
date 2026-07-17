@@ -42,7 +42,6 @@ function monthStatsFor(matches: Match[], prefix: string) {
       singleLosses: singleLoss.get(name) ?? 0,
       doubleLosses: doubleLoss.get(name) ?? 0,
     }))
-    .filter((r) => r.singleLosses > 0 || r.doubleLosses > 0)
     .sort((a, b) =>
       (b.singleLosses + b.doubleLosses) - (a.singleLosses + a.doubleLosses)
     );
