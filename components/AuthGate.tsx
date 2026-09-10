@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useData } from "@/contexts/DataContext";
 import { AuthContext, AuthUser } from "@/contexts/AuthContext";
+import type { Member } from "@/lib/members";
 
 const SESSION_KEY = "biblio_user";
 const ADMIN_PIN = "0111";
@@ -57,6 +58,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
+  // A PIN typed before the member list has arrived, resolved once it does.
+  const [pendingPin, setPendingPin] = useState<string | null>(null);
 
   useEffect(() => {
     setThemeColor(!!user);
@@ -67,8 +70,36 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const rejectPin = useCallback(() => {
+    setError("Số điện thoại không khớp với thành viên nào");
+    setShake(true);
+    setTimeout(() => {
+      setInput("");
+      setShake(false);
+      setError("");
+    }, 700);
+  }, []);
+
+  const tryLogin = useCallback((pin: string, list: Member[]) => {
+    const name = pin === ADMIN_PIN
+      ? "Admin"
+      : list.find((m) => m.phone && m.phone.replace(/\D/g, "").slice(-4) === pin)?.name;
+    if (!name) return false;
+    writeStoredUser(name);
+    setThemeColor(true);
+    setUser({ name });
+    return true;
+  }, []);
+
+  // Resolve a PIN that was typed before the member list finished loading.
+  useEffect(() => {
+    if (pendingPin === null || loading) return;
+    setPendingPin(null);
+    if (!tryLogin(pendingPin, members)) rejectPin();
+  }, [pendingPin, loading, members, tryLogin, rejectPin]);
+
   const handleKey = (key: string) => {
-    if (key === "") return;
+    if (key === "" || pendingPin !== null) return;
     if (key === "⌫") {
       setInput((p) => p.slice(0, -1));
       setError("");
@@ -76,34 +107,13 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     }
     const next = input + key;
     setInput(next);
+    if (next.length < 4) return;
 
-    if (next.length === 4) {
-      // Find member whose phone ends with these 4 digits
-      // Admin PIN bypass
-      if (next === ADMIN_PIN) {
-        writeStoredUser("Admin");
-        setThemeColor(true);
-        setUser({ name: "Admin" });
-        return;
-      }
-      // Find member whose phone ends with these 4 digits
-      const match = members.find(
-        (m) => m.phone && m.phone.replace(/\D/g, "").slice(-4) === next
-      );
-      if (match) {
-        writeStoredUser(match.name);
-        setThemeColor(true);
-        setUser({ name: match.name });
-      } else {
-        setError("Số điện thoại không khớp với thành viên nào");
-        setShake(true);
-        setTimeout(() => {
-          setInput("");
-          setShake(false);
-          setError("");
-        }, 700);
-      }
-    }
+    // Admin PIN and any cached member list resolve with zero network.
+    if (tryLogin(next, members)) return;
+    // Nothing matched: if members are still in flight, hold and retry on arrival.
+    if (loading) setPendingPin(next);
+    else rejectPin();
   };
 
   if (user) {
@@ -126,9 +136,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         CLB Bóng bàn BIBLIO
       </p>
       <p className="text-white text-lg font-semibold mb-1">Nhập 4 số cuối SĐT</p>
-      {loading ? (
-        <p className="text-white/40 text-xs mb-8">Đang tải...</p>
-      ) : members.filter((m) => m.phone).length === 0 ? (
+      {pendingPin !== null ? (
+        <p className="text-white/40 text-xs mb-8">Đang kiểm tra...</p>
+      ) : !loading && members.filter((m) => m.phone).length === 0 ? (
         <p className="text-orange-300 text-xs text-center px-8 mb-8">
           Chưa có SĐT trong hồ sơ thành viên.{"\n"}Nhập PIN admin để vào thiết lập.
         </p>
@@ -161,7 +171,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
               <button
                 key={ki}
                 onClick={() => handleKey(key)}
-                disabled={key === "" || loading}
+                disabled={key === "" || pendingPin !== null}
                 className={`w-20 h-20 rounded-full text-white font-semibold text-2xl transition-all active:scale-90 ${
                   key === ""
                     ? "invisible"

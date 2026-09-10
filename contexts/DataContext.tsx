@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getAllMatches, Match } from "@/lib/firestore";
 import { getAllMembers, Member } from "@/lib/members";
+import { readCache, writeCache } from "@/lib/cache";
 
 interface DataCtx {
   matches: Match[];
@@ -25,9 +26,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     setError(null);
     try {
-      const [m, mem] = await Promise.all([getAllMatches(), getAllMembers()]);
-      setMatches(m);
-      setMembers(mem);
+      // Members resolve independently of the 300+ match documents, so login
+      // stops waiting on data it never needed.
+      const membersPromise = getAllMembers().then((mem) => {
+        setMembers(mem);
+        writeCache("members", mem);
+      });
+      const matchesPromise = getAllMatches().then((m) => {
+        setMatches(m);
+        writeCache("matches", m);
+      });
+      await Promise.all([membersPromise, matchesPromise]);
     } catch (e) {
       console.error("DataContext refresh failed:", e);
       setError(e instanceof Error ? e.message : "Không thể tải dữ liệu");
@@ -35,11 +44,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Paint from the previous session's cache first, then revalidate.
+    const cachedMatches = readCache<Match[]>("matches");
+    const cachedMembers = readCache<Member[]>("members");
+    if (cachedMatches) setMatches(cachedMatches);
+    if (cachedMembers) setMembers(cachedMembers);
+    if (cachedMatches || cachedMembers) setLoading(false);
+
     refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  // Show a full-screen error with retry if initial load fails
-  if (!loading && error) {
+  // Only take over the screen when the fetch failed AND there is no cached
+  // copy to fall back on — otherwise stale data beats an error wall.
+  if (!loading && error && matches.length === 0 && members.length === 0) {
     return (
       <DataContext.Provider value={{ matches, members, loading, error, refresh }}>
         <div className="fixed inset-0 bg-gray-50 flex flex-col items-center justify-center p-8 z-50">
