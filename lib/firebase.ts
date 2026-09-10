@@ -17,15 +17,27 @@ const INLINE_CONFIG = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+type Cfg = Record<string, string | undefined>;
+
+declare global {
+  interface Window { __fbConfig?: Promise<Cfg | null> }
+}
+
+async function fetchConfig(): Promise<Cfg> {
+  // The document head kicks this request off before the bundle finishes
+  // parsing; reuse it rather than starting a second, later one.
+  const early = typeof window !== "undefined" ? await window.__fbConfig : null;
+  if (early?.apiKey) return early;
+
+  const res = await fetch("/api/firebase-config");
+  if (!res.ok) throw new Error(`Firebase config fetch failed: ${res.status}`);
+  return res.json();
+}
+
 async function initFirebase(): Promise<FirebaseApp> {
   if (app) return app;
-  // Fall back to the API route when the build had no inlined config.
-  let config: Record<string, string | undefined> = INLINE_CONFIG;
-  if (!config.apiKey) {
-    const res = await fetch("/api/firebase-config");
-    if (!res.ok) throw new Error(`Firebase config fetch failed: ${res.status}`);
-    config = await res.json();
-  }
+  // Prefer a build-inlined config; otherwise go over the network.
+  const config: Cfg = INLINE_CONFIG.apiKey ? INLINE_CONFIG : await fetchConfig();
   if (!config.apiKey) throw new Error("Firebase config missing apiKey");
   app = getApps().length === 0 ? initializeApp(config) : getApps()[0];
   return app;

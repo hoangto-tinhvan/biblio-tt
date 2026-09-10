@@ -30,6 +30,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Warm the Firestore connection while the JS bundle is still parsing. */}
         <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+        {/* Start the Firebase config request at HTML parse time. Without this it
+            cannot begin until the whole bundle has downloaded and executed,
+            which measured ~3s later on the critical path. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__fbConfig=fetch("/api/firebase-config").then(function(r){return r.ok?r.json():null}).catch(function(){return null});`,
+          }}
+        />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
